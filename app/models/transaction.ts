@@ -1,6 +1,14 @@
 import { DateTime } from 'luxon';
 import { BaseModel, column } from '@adonisjs/lucid/orm';
 
+export enum StatusTypes {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  FAILED = 'FAILED',
+  CANCELED = 'CANCELED',
+  REFUNDED = 'REFUNDED',
+}
+
 export default class Transaction extends BaseModel {
   @column({ isPrimary: true })
   declare id: number;
@@ -15,7 +23,7 @@ export default class Transaction extends BaseModel {
   declare external_id: string;
 
   @column()
-  declare status: string;
+  declare status: StatusTypes;
 
   @column()
   declare amount: number;

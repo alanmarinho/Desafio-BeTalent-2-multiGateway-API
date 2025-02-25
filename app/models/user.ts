@@ -15,7 +15,7 @@ export default class User extends BaseModel {
   declare password: string;
 
   @column()
-  declare role: string;
+  declare role_id: string;
 
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime;
