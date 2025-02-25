@@ -7,10 +7,13 @@
 |
 */
 
-import router from '@adonisjs/core/services/router'
+import router from '@adonisjs/core/services/router';
+
+import '#modules/User/routes';
+import '#modules/Product/routes';
 
 router.get('/', async () => {
   return {
     hello: 'world',
-  }
-})
+  };
+});
