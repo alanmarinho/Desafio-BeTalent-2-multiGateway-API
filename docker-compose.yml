@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: betalent_multigateway_payment_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: betalent_multigateway_payment
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - '127.0.0.1:3390:3306'
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: always
+
+volumes:
+  db_data:
