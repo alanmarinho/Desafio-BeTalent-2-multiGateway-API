@@ -24,7 +24,7 @@ interface validadePermitionsProps {
 }
 const permissions: { [key: string]: { [key: string]: string[] } } = {
   ADMIN: {
-    '*': ['GET', 'POST', 'PUT', 'PATH', 'DELETE'], // caso especial, ADM pode tudo.
+    '*': ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // caso especial, ADM pode tudo.
   },
   USER: {
     '/auth/login': ['POST'],

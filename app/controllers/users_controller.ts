@@ -97,7 +97,7 @@ export default class UsersController {
       if (err instanceof errors.E_VALIDATION_ERROR) {
         return ErrorReturn({
           res: response,
-          status: 401,
+          status: 400,
           msg: 'Validation Error',
           fields: FieldError(err.messages),
         });
@@ -168,13 +168,12 @@ export default class UsersController {
         }
 
         existentUser.merge({ role_id: newRole.id });
-
-        const { role, ...filteredData } = data;
-        data = filteredData;
       }
 
+      const { role, ...safeData } = data;
+
       try {
-        existentUser.merge({ ...data });
+        existentUser.merge({ ...safeData });
         await existentUser.save();
 
         await existentUser.refresh();
@@ -300,7 +299,7 @@ export default class UsersController {
         return SuccessReturn({
           msg: 'Success on delete user',
           res: response,
-          status: 200,
+          status: 204,
         });
       } catch (err) {
         return ErrorReturn({

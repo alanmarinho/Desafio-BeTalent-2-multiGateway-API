@@ -16,7 +16,7 @@ export default class Product extends BaseModel {
   declare name: string;
 
   @column()
-  declare unit_value: string;
+  declare unit_price: number;
 
   @column.dateTime()
   declare deleted_in: DateTime | null;
