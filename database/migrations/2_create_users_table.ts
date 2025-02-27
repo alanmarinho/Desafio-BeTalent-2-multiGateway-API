@@ -11,7 +11,7 @@ export default class extends BaseSchema {
       table.string('email').notNullable().unique();
       table.string('name').notNullable();
       table.string('password').notNullable();
-      table.string('role_id').notNullable().references('id').inTable('roles').onDelete('CASCADE');
+      table.integer('role_id').notNullable().unsigned().references('id').inTable('roles').onDelete('CASCADE');
 
       table.dateTime('created_at', { useTz: true }).defaultTo(this.now());
       table.dateTime('updated_at', { useTz: true }).defaultTo(this.now());

@@ -19,7 +19,6 @@ function encrypt({ data, key }: IEncrypt) {
     const ivHex = iv.toString('hex');
     return ivHex + '|' + encrypted;
   } catch (err) {
-    console.log('encriptErro', err);
     throw new Error('Error encrypting data');
   }
 }

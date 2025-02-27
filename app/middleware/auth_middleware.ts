@@ -9,10 +9,50 @@ import { decrypt } from '#utils/auth/encryptAndDecrypt';
 import { ValidateJWT } from '#utils/auth/validateJWT';
 import { ErrorReturn } from '#utils/errorReturn';
 import { IJwtPayload } from '#utils/interfaces/interfaces';
+import { RemoveSession } from '#utils/auth/removeSession';
 
 import env from '#start/env';
-import { RemoveSession } from '#utils/auth/removeSession';
+
+import User from '#models/user';
+import { RoleTypes } from '#models/role';
+
 const APP_KEY = env.get('APP_KEY');
+
+interface validadePermitionsProps {
+  ctx: HttpContext;
+  user_id: number;
+}
+const permissions: { [key: string]: { [key: string]: string[] } } = {
+  ADMIN: {
+    '*': ['GET', 'POST', 'PUT', 'PATH', 'DELETE'], // caso especial, ADM pode tudo.
+  },
+  USER: {
+    '/auth/login': ['POST'],
+    '/auth/logout': ['POST'],
+  },
+};
+
+async function validadePermitions({ ctx, user_id }: validadePermitionsProps): Promise<boolean> {
+  const user = await User.query().where('id', user_id).preload('role').first();
+
+  if (!user) {
+    return false;
+  }
+
+  const roleName = user.role.name;
+  const url = ctx.request.url();
+  const method = ctx.request.method();
+
+  if (roleName === RoleTypes.ADMIN) {
+    return permissions[roleName]?.['*']?.includes(method) || false;
+  }
+
+  if (roleName === RoleTypes.USER) {
+    return permissions[roleName]?.[url]?.includes(method) || false;
+  }
+
+  return false;
+}
 
 export default class AuthMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
@@ -45,8 +85,20 @@ export default class AuthMiddleware {
       const [payload, status] = await ValidateJWT({ jwt: token, key: decriptedJwtKey });
       switch (status) {
         case 'Valid':
-          ctx.authPayload = payload as IJwtPayload;
-          await next();
+          const jwtPayload = payload as IJwtPayload;
+
+          const validPermissions = await validadePermitions({ ctx: ctx, user_id: jwtPayload.user_id });
+
+          if (validPermissions) {
+            ctx.authPayload = jwtPayload;
+            await next();
+          } else {
+            return ErrorReturn({
+              msg: 'Unauthorized',
+              res: ctx.response,
+              status: 401,
+            });
+          }
           break;
         case 'Expired':
           await RemoveSession({ session_id: tokenPayload.session_id });

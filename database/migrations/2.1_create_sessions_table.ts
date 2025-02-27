@@ -6,7 +6,7 @@ export default class extends BaseSchema {
   async up() {
     this.schema.dropTableIfExists(this.tableName);
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id');
+      table.increments('id').primary();
 
       table.integer('user_id').notNullable().unsigned().references('id').inTable('users').onDelete('CASCADE');
       table.string('token_key').notNullable();

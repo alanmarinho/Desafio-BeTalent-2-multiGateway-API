@@ -6,7 +6,8 @@ export default class NotFoundHandler {
   public async handle({ response }: HttpContext, next: NextFn) {
     await next();
 
-    if (response.response.statusCode === 404) {
+    // retorno padrão para rotas não encontradas (evitar retornar dados detalhados) e diferenciar rota não encontrada de retorno status 404 de controller.
+    if (!!response.notFound && !response.ctx?.route) {
       return ErrorReturn({ msg: 'Route not found', status: 404, res: response });
     }
   }
