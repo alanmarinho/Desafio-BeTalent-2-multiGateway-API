@@ -1,7 +1,11 @@
+import { UseExpectedTokensIn } from '#models/auth_gateway_config';
+
 import { BaseSchema } from '@adonisjs/lucid/schema';
 
+const UseExpectedTokensInValues = Object.values(UseExpectedTokensIn);
+
 export default class extends BaseSchema {
-  protected tableName = 'gateways';
+  protected tableName = 'auth_gateway_configs';
 
   async up() {
     this.schema.dropTableIfExists(this.tableName);
@@ -9,13 +13,11 @@ export default class extends BaseSchema {
       table.increments('id').primary();
 
       table.integer('user_id').notNullable().unsigned().references('id').inTable('users').onDelete('CASCADE');
-      table.string('name').notNullable();
-      table.string('url').notNullable();
-      table.string('port').notNullable().checkPositive();
-      table.boolean('is_active').notNullable().defaultTo(false);
-      table.integer('priority').unique().notNullable().checkPositive().defaultTo(1);
+      table.integer('gateway_id').notNullable().unsigned().references('id').inTable('gateways').onDelete('CASCADE');
+      table.enum('tokens_used_in', UseExpectedTokensInValues).notNullable();
+      table.json('expected_login_tokens_map').nullable().defaultTo(null);
+      table.boolean('need_login').notNullable().defaultTo(false);
 
-      table.unique(['port', 'url']);
       table.dateTime('created_at', { useTz: true }).defaultTo(this.now());
       table.dateTime('updated_at', { useTz: true }).defaultTo(this.now());
     });

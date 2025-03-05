@@ -170,7 +170,11 @@ export default class UsersController {
         existentUser.merge({ role_id: newRole.id });
       }
 
-      const { role, ...safeData } = data;
+      if (data.password) {
+        existentUser.merge({ password: await hash.make(data.password) });
+      }
+
+      const { role, password, ...safeData } = data;
 
       try {
         existentUser.merge({ ...safeData });

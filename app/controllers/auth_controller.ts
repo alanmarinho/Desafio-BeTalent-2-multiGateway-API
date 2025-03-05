@@ -17,6 +17,8 @@ import { RemoveSession } from '#utils/auth/removeSession';
 import { loginValidator } from '#validators/auth';
 
 import env from '#start/env';
+// import Role from '#models/role';
+// import { registerValidator } from '#validators/user';
 
 const APP_KEY = env.get('APP_KEY');
 
@@ -96,7 +98,68 @@ export default class AuthController {
       });
     }
   }
+  // public async register({ response, request, authPayload }: HttpContext) {
+  //   try {
+  //     // if (!authPayload) {
+  //     //   return ErrorReturn({ res: response, status: 401, msg: 'Not authenticated', actions: { remove_token: true } });
+  //     // }
+  //     const data = await request.validateUsing(registerValidator);
 
+  //     const existentUser = await User.findBy('email', data.email);
+  //     const existentRole = await Role.findBy('name', data.role);
+
+  //     if (existentUser) {
+  //       return ErrorReturn({
+  //         res: response,
+  //         status: 409,
+  //         msg: 'Email already registered',
+  //         fields: [{ field: 'email', message: 'Email already registered' }],
+  //       });
+  //     }
+
+  //     if (!existentRole) {
+  //       return ErrorReturn({
+  //         res: response,
+  //         status: 409,
+  //         msg: 'Invalid role',
+  //         fields: [{ field: 'role', message: 'Invalid role' }],
+  //       });
+  //     }
+  //     const newUserPayload = {
+  //       name: data.name,
+  //       email: data.email,
+  //       password: await hash.make(data.password),
+  //       role_id: existentRole.id,
+  //     };
+
+  //     const newUser = await User.create(newUserPayload);
+
+  //     const newuserResponse = {
+  //       id: newUser.id,
+  //       name: newUser.name,
+  //     };
+
+  //     if (!!newUser) {
+  //       return SuccessReturn({ status: 201, msg: 'Success create user', res: response, data: newuserResponse });
+  //     } else {
+  //       return ErrorReturn({ status: 500, msg: 'Create user error', res: response });
+  //     }
+  //   } catch (err) {
+  //     if (err instanceof errors.E_VALIDATION_ERROR) {
+  //       return ErrorReturn({
+  //         res: response,
+  //         status: 400,
+  //         msg: 'Validation Error',
+  //         fields: FieldError(err.messages),
+  //       });
+  //     }
+  //     return ErrorReturn({
+  //       res: response,
+  //       status: 500,
+  //       msg: 'Internal Server error',
+  //     });
+  //   }
+  // }
   public async logout({ response, authPayload }: HttpContext) {
     try {
       if (!authPayload) {

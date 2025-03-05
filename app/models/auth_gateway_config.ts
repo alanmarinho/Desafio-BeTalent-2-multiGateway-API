@@ -1,31 +1,34 @@
 import { DateTime } from 'luxon';
-
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm';
 import type { BelongsTo } from '@adonisjs/lucid/types/relations';
-
 import User from './user.js';
+import Gateway from './gateway.js';
 
-export default class Gateway extends BaseModel {
+export enum UseExpectedTokensIn {
+  BEARER = 'BEARER',
+  HEADER = 'HEADER',
+  QUERY = 'QUERY ',
+  BODY = 'BODY',
+}
+
+export default class AuthGatewayConfig extends BaseModel {
   @column({ isPrimary: true })
   declare id: number;
+
+  @column()
+  declare gateway_id: number;
 
   @column()
   declare user_id: number;
 
   @column()
-  declare name: string;
+  declare tokens_used_in: UseExpectedTokensIn;
 
   @column()
-  declare url: string;
+  declare expected_login_tokens_map: JSON;
 
   @column()
-  declare port: string;
-
-  @column()
-  declare is_active: boolean;
-
-  @column()
-  declare priority: number;
+  declare need_login: boolean;
 
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime;
@@ -35,4 +38,7 @@ export default class Gateway extends BaseModel {
 
   @belongsTo(() => User, { foreignKey: 'user_id' })
   public user!: BelongsTo<typeof User>;
+
+  @belongsTo(() => Gateway, { foreignKey: 'gateway_id' })
+  public gateway!: BelongsTo<typeof Gateway>;
 }

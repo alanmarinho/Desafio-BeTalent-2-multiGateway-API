@@ -57,6 +57,7 @@
     "@adonisjs/core": "^6.17.2",
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.6.0",
+    "@adonisjs/validator": "^13.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@vinejs/vine": "^3.0.0",
     "crypto": "^1.0.1",
