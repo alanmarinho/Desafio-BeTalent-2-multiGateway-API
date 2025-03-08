@@ -20,6 +20,12 @@ export default class TransactionProduct extends BaseModel {
   @column()
   declare transaction_id: number;
 
+  @column()
+  declare unit_price: number;
+
+  @column()
+  declare quantity: number;
+
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime;
 

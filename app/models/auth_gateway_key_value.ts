@@ -7,8 +7,9 @@ import AuthGatewayConfig from './auth_gateway_config.js';
 
 export enum UsekeyValueIn {
   HEADER = 'HEADER',
-  QUERY = 'QUERY ',
+  QUERY = 'QUERY',
   BODY = 'BODY',
+  BEARER = 'BEARER',
 }
 
 export enum TypeKeyValue {

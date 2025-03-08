@@ -4,7 +4,7 @@ import { UsekeyValueIn, TypeKeyValue } from '#models/auth_gateway_key_value';
 
 const registerAuthConfigValidator = vine.object({
   need_login: vine.boolean(),
-  tokens_used_in: vine.enum(UseExpectedTokensIn),
+  tokens_used_in: vine.enum(UseExpectedTokensIn).optional().requiredWhen('need_login', '=', true),
   expected_login_tokens_map: vine.record(vine.string()).optional().requiredWhen('need_login', '=', true),
 });
 

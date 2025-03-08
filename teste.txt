@@ -1,0 +1,57 @@
+{
+	"name":"gateway1",
+	"is_active":true,
+	"url":"http://localhost",
+	"priority":1,
+	"port":"3001",
+	"auth":{
+		"need_login":true,
+		"tokens_used_in":"BEARER",
+		"expected_login_tokens_map":{"token": "token"}
+	},
+	
+	"credentials":[
+		{
+			"key":"email",
+			"value":"dev@betalent.tec",
+			"use_in":"BODY",
+			"type":"LOGIN"
+		},
+		{
+			"key":"token",
+			"value":"FEC9BB078BF338F464F96B48089EB498",
+			"use_in":"BODY",
+			"type":"LOGIN"
+		}
+	]
+}
+
+{
+	"name":"gateway2",
+	"is_active":true,
+	"url":"http://localhost",
+	"priority":1,
+	"port":"3002",
+	"auth":{
+		"need_login":false,
+		"tokens_used_in":"BEARER",
+		"expected_login_tokens_map":{"token": "token"}
+	},
+	
+	"credentials":[
+		{
+			"key":"Gateway-Auth-Token",
+			"value":"tk_f2198cc671b5289fa856",
+			"use_in":"HEADER",
+			"type":"TOKEN"
+		},
+		{
+			"key":"Gateway-Auth-Secret",
+			"value":"3d15e8ed6131446ea7e3456728b1211f",
+			"use_in":"HEADER",
+			"type":"TOKEN"
+		}
+	]
+}
+
+

@@ -13,8 +13,8 @@ export default class Role extends BaseModel {
   declare name: RoleTypes;
 
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime;
+  declare created_at: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime;
+  declare created_at: DateTime;
 }

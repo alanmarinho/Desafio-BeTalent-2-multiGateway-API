@@ -7,7 +7,7 @@ import Gateway from './gateway.js';
 export enum UseExpectedTokensIn {
   BEARER = 'BEARER',
   HEADER = 'HEADER',
-  QUERY = 'QUERY ',
+  QUERY = 'QUERY',
   BODY = 'BODY',
 }
 

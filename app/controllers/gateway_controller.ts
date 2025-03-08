@@ -113,21 +113,34 @@ export default class GatewayController {
       const credentialsData = credentials;
       const configData = config;
 
-      const existentGataway = await Gateway.query()
-        .where('url', configData.url)
-        .andWhere('port', configData.port)
+      const existentGateway = await Gateway.query()
+        .where((builder) => {
+          builder.where('url', configData.url).andWhere('port', configData.port);
+        })
+        .orWhere('name', data.name)
         .first();
 
-      if (existentGataway) {
-        return ErrorReturn({
-          msg: 'URL and port already in use',
-          res: response,
-          status: 409,
-          fields: [
-            { field: 'port', message: 'Another gateway is using this same URL and port' },
-            { field: 'url', message: 'Another gateway is using this same URL and port' },
-          ],
-        });
+      if (existentGateway) {
+        if (existentGateway.url === configData.url && existentGateway.port === configData.port) {
+          return ErrorReturn({
+            msg: 'URL and port already in use',
+            res: response,
+            status: 409,
+            fields: [
+              { field: 'url', message: 'Another gateway is using this same URL' },
+              { field: 'port', message: 'Another gateway is using this same port' },
+            ],
+          });
+        }
+
+        if (existentGateway.name === data.name) {
+          return ErrorReturn({
+            msg: 'Gateway name already in use',
+            res: response,
+            status: 409,
+            fields: [{ field: 'name', message: 'A gateway with this name already exists' }],
+          });
+        }
       }
       let gatewayPayload = {
         user_id: authPayload.user_id,
@@ -210,6 +223,7 @@ export default class GatewayController {
           data: returnPayload,
         });
       } catch (err) {
+        console.log(err);
         return ErrorReturn({
           msg: 'Create Gateway error',
           res: response,
@@ -225,6 +239,7 @@ export default class GatewayController {
           fields: FieldError(err.messages),
         });
       }
+
       return ErrorReturn({
         res: response,
         status: 500,

@@ -21,15 +21,17 @@ interface IErrorReturn {
   fields?: IFieldError[];
   parameters?: IParameterError[];
   actions?: IErrorActions;
+  data?: any;
 }
 
-export function ErrorReturn({ msg, fields, actions, res, status, parameters }: IErrorReturn) {
+export function ErrorReturn({ msg, fields, actions, res, data, status, parameters }: IErrorReturn) {
   const errorReturn = {
     msg: msg,
     status: status,
     ...(fields && { fields: fields }),
     ...(actions && { actions: actions }),
     ...(parameters && { parameters: parameters }),
+    ...(data && { data: data }),
   };
   res.status(status).json(errorReturn);
 }

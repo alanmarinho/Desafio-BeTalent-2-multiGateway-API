@@ -9,7 +9,7 @@ export default class extends BaseSchema {
       table.increments('id').primary();
 
       table.integer('user_id').notNullable().unsigned().references('id').inTable('users').onDelete('CASCADE');
-      table.string('name').notNullable();
+      table.string('name').notNullable().unique();
       table.string('url').notNullable();
       table.string('port').notNullable().checkPositive();
       table.boolean('is_active').notNullable().defaultTo(false);

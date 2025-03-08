@@ -18,6 +18,8 @@ export default class extends BaseSchema {
       table.float('amount').notNullable().checkPositive();
       table.string('card_last_numbers').notNullable();
 
+      table.unique(['gateway_id', 'external_id']);
+
       table.dateTime('created_at', { useTz: true }).defaultTo(this.now());
       table.dateTime('updated_at', { useTz: true }).defaultTo(this.now());
     });

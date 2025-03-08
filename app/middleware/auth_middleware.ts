@@ -29,6 +29,7 @@ const permissions: { [key: string]: { [key: string]: string[] } } = {
   USER: {
     '/auth/login': ['POST'],
     '/auth/logout': ['POST'],
+    '/purchases/': ['POST', 'GET'],
   },
 };
 

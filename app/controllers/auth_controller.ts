@@ -17,6 +17,11 @@ import { RemoveSession } from '#utils/auth/removeSession';
 import { loginValidator } from '#validators/auth';
 
 import env from '#start/env';
+
+import { GatewayFactory } from '#services/Gateways/Factory/gatewayFactory';
+import Product from '#models/product';
+import Gateway from '#models/gateway';
+import { ITransactionPayload } from '#services/Gateways/Base/payment_gateway';
 // import Role from '#models/role';
 // import { registerValidator } from '#validators/user';
 
@@ -94,72 +99,11 @@ export default class AuthController {
       return ErrorReturn({
         res: response,
         status: 500,
-        msg: 'Internal Serveer error',
+        msg: 'Internal Server error',
       });
     }
   }
-  // public async register({ response, request, authPayload }: HttpContext) {
-  //   try {
-  //     // if (!authPayload) {
-  //     //   return ErrorReturn({ res: response, status: 401, msg: 'Not authenticated', actions: { remove_token: true } });
-  //     // }
-  //     const data = await request.validateUsing(registerValidator);
 
-  //     const existentUser = await User.findBy('email', data.email);
-  //     const existentRole = await Role.findBy('name', data.role);
-
-  //     if (existentUser) {
-  //       return ErrorReturn({
-  //         res: response,
-  //         status: 409,
-  //         msg: 'Email already registered',
-  //         fields: [{ field: 'email', message: 'Email already registered' }],
-  //       });
-  //     }
-
-  //     if (!existentRole) {
-  //       return ErrorReturn({
-  //         res: response,
-  //         status: 409,
-  //         msg: 'Invalid role',
-  //         fields: [{ field: 'role', message: 'Invalid role' }],
-  //       });
-  //     }
-  //     const newUserPayload = {
-  //       name: data.name,
-  //       email: data.email,
-  //       password: await hash.make(data.password),
-  //       role_id: existentRole.id,
-  //     };
-
-  //     const newUser = await User.create(newUserPayload);
-
-  //     const newuserResponse = {
-  //       id: newUser.id,
-  //       name: newUser.name,
-  //     };
-
-  //     if (!!newUser) {
-  //       return SuccessReturn({ status: 201, msg: 'Success create user', res: response, data: newuserResponse });
-  //     } else {
-  //       return ErrorReturn({ status: 500, msg: 'Create user error', res: response });
-  //     }
-  //   } catch (err) {
-  //     if (err instanceof errors.E_VALIDATION_ERROR) {
-  //       return ErrorReturn({
-  //         res: response,
-  //         status: 400,
-  //         msg: 'Validation Error',
-  //         fields: FieldError(err.messages),
-  //       });
-  //     }
-  //     return ErrorReturn({
-  //       res: response,
-  //       status: 500,
-  //       msg: 'Internal Server error',
-  //     });
-  //   }
-  // }
   public async logout({ response, authPayload }: HttpContext) {
     try {
       if (!authPayload) {
@@ -181,4 +125,79 @@ export default class AuthController {
       return ErrorReturn({ res: response, msg: 'Internal server error', status: 500 });
     }
   }
+
+  public async teste({ response, request, authPayload }: HttpContext) {
+    try {
+      if (!authPayload) {
+        return ErrorReturn({
+          msg: 'no auth',
+          res: response,
+          status: 401,
+        });
+      }
+      const existentUser = await User.query().where('id', authPayload.user_id).first();
+
+      if (!existentUser) {
+        return ErrorReturn({
+          msg: 'not found user',
+          res: response,
+          status: 404,
+        });
+      }
+      const data = request.body();
+
+      const existentProduct = await Product.query().where('id', data.product_id).whereNull('deleted_in').first();
+
+      if (!existentProduct) {
+        return ErrorReturn({
+          msg: 'not found product',
+          res: response,
+          status: 404,
+        });
+      }
+
+      const transactionPayload: ITransactionPayload = {
+        transaction_amount: Math.round(existentProduct.unit_price * 100 * data.quantity),
+        client_name: existentUser.name,
+        client_email: existentUser.email,
+        card_number: data.credit_card.number,
+        card_CVV: data.credit_card.cvv,
+      };
+
+      const validPaymentGateway = await Gateway.query().where('is_active', true).orderBy('priority', 'asc');
+      if (validPaymentGateway.length < 1) {
+        return ErrorReturn({
+          msg: 'not have displonible gateways',
+          res: response,
+          status: 404,
+        });
+      }
+      let gatewayReturn: Record<string, any> | false = false;
+      let usedGateway: Gateway = validPaymentGateway[0];
+      for (const gateway of validPaymentGateway) {
+        const paymentGateway = GatewayFactory.create(gateway.name);
+        if (!paymentGateway) return;
+        gatewayReturn = await paymentGateway.makeTransaction(gateway.id, transactionPayload);
+        if (gatewayReturn != false) {
+          usedGateway = gateway;
+          break;
+        }
+      }
+      console.log(gatewayReturn, usedGateway.id, usedGateway.priority);
+    } catch (err) {
+      return ErrorReturn({
+        msg: 'Error err',
+        res: response,
+        status: 400,
+      });
+    }
+  }
+
+  // public async teste({ response, request, authPayload }: HttpContext) {
+  //   const paymentGateway = GatewayFactory.create('gateway1');
+  //   if (!paymentGateway) {
+  //     return;
+  //   }
+  //   const gatewayReturn = await paymentGateway.listTransactions(7);
+  // }
 }

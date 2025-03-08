@@ -17,6 +17,8 @@ export default class extends BaseSchema {
         .references('id')
         .inTable('transactions')
         .onDelete('CASCADE');
+      table.integer('quantity').notNullable();
+      table.float('unit_price', 10, 2).notNullable().checkPositive();
 
       table.dateTime('created_at', { useTz: true }).defaultTo(this.now());
       table.dateTime('updated_at', { useTz: true }).defaultTo(this.now());

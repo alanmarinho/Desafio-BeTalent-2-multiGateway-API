@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon';
-import { BaseModel, column } from '@adonisjs/lucid/orm';
+import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm';
+import type { BelongsTo } from '@adonisjs/lucid/types/relations';
+import Gateway from './gateway.js';
 
 export enum StatusTypes {
   PENDING = 'PENDING',
@@ -32,8 +34,11 @@ export default class Transaction extends BaseModel {
   declare card_last_numbers: string;
 
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime;
+  declare created_at: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime;
+  declare updated_at: DateTime;
+
+  @belongsTo(() => Gateway, { foreignKey: 'gateway_id' })
+  public gateway!: BelongsTo<typeof Gateway>;
 }
