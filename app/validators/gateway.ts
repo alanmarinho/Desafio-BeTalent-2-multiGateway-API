@@ -55,7 +55,6 @@ const updateValidatorBody = vine.compile(
       .regex(/^[0-9]+$/)
       .optional(),
     auth: updateAuthConfigValidator.optional(),
-    credentials: vine.array(updateKeyvalueValidator).optional(),
   }),
 );
 
@@ -103,6 +102,22 @@ const priorityChangeBody = vine.compile(
   }),
 );
 
+const updateCredentialsParameters = vine.compile(
+  vine.object({
+    id: vine.number().positive(),
+    credential_id: vine.number().positive(),
+  }),
+);
+const updateCredentialsBody = vine.compile(
+  vine.object({
+    key: vine.string().optional(),
+    value: vine.string().optional(),
+    use_in: vine.enum(UsekeyValueIn).optional(),
+    type: vine.enum(TypeKeyValue).optional(),
+  }),
+);
+
 export const priorityChange = { priorityChangeBody, priorityChangeParameters };
 export const updateValidator = { updateValidatorBody, updateValidatorParameters };
 export const showCredentials = { showCredentialsValidatorParameters, showCredentialsValidatorBody };
+export const updateCredentials = { updateCredentialsParameters, updateCredentialsBody };

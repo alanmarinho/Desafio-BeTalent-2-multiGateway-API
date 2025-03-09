@@ -18,13 +18,6 @@ import { loginValidator } from '#validators/auth';
 
 import env from '#start/env';
 
-import { GatewayFactory } from '#services/Gateways/Factory/gatewayFactory';
-import Product from '#models/product';
-import Gateway from '#models/gateway';
-import { ITransactionPayload } from '#services/Gateways/Base/payment_gateway';
-// import Role from '#models/role';
-// import { registerValidator } from '#validators/user';
-
 const APP_KEY = env.get('APP_KEY');
 
 export default class AuthController {
@@ -125,79 +118,4 @@ export default class AuthController {
       return ErrorReturn({ res: response, msg: 'Internal server error', status: 500 });
     }
   }
-
-  public async teste({ response, request, authPayload }: HttpContext) {
-    try {
-      if (!authPayload) {
-        return ErrorReturn({
-          msg: 'no auth',
-          res: response,
-          status: 401,
-        });
-      }
-      const existentUser = await User.query().where('id', authPayload.user_id).first();
-
-      if (!existentUser) {
-        return ErrorReturn({
-          msg: 'not found user',
-          res: response,
-          status: 404,
-        });
-      }
-      const data = request.body();
-
-      const existentProduct = await Product.query().where('id', data.product_id).whereNull('deleted_in').first();
-
-      if (!existentProduct) {
-        return ErrorReturn({
-          msg: 'not found product',
-          res: response,
-          status: 404,
-        });
-      }
-
-      const transactionPayload: ITransactionPayload = {
-        transaction_amount: Math.round(existentProduct.unit_price * 100 * data.quantity),
-        client_name: existentUser.name,
-        client_email: existentUser.email,
-        card_number: data.credit_card.number,
-        card_CVV: data.credit_card.cvv,
-      };
-
-      const validPaymentGateway = await Gateway.query().where('is_active', true).orderBy('priority', 'asc');
-      if (validPaymentGateway.length < 1) {
-        return ErrorReturn({
-          msg: 'not have displonible gateways',
-          res: response,
-          status: 404,
-        });
-      }
-      let gatewayReturn: Record<string, any> | false = false;
-      let usedGateway: Gateway = validPaymentGateway[0];
-      for (const gateway of validPaymentGateway) {
-        const paymentGateway = GatewayFactory.create(gateway.name);
-        if (!paymentGateway) return;
-        gatewayReturn = await paymentGateway.makeTransaction(gateway.id, transactionPayload);
-        if (gatewayReturn != false) {
-          usedGateway = gateway;
-          break;
-        }
-      }
-      console.log(gatewayReturn, usedGateway.id, usedGateway.priority);
-    } catch (err) {
-      return ErrorReturn({
-        msg: 'Error err',
-        res: response,
-        status: 400,
-      });
-    }
-  }
-
-  // public async teste({ response, request, authPayload }: HttpContext) {
-  //   const paymentGateway = GatewayFactory.create('gateway1');
-  //   if (!paymentGateway) {
-  //     return;
-  //   }
-  //   const gatewayReturn = await paymentGateway.listTransactions(7);
-  // }
 }

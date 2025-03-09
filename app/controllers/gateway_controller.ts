@@ -13,6 +13,7 @@ import {
   priorityChange,
   registerValidator,
   showCredentials,
+  updateCredentials,
   updateValidator,
 } from '#validators/gateway';
 import { HttpContext } from '@adonisjs/core/http';
@@ -187,9 +188,9 @@ export default class GatewayController {
         const configPayload = {
           gateway_id: newGateway.id,
           user_id: authPayload.user_id,
-          tokens_used_in: authData.tokens_used_in,
-          expected_login_tokens_map: authData.expected_login_tokens_map
-            ? (JSON.parse(JSON.stringify(authData.expected_login_tokens_map)) as JSON)
+          tokens_used_in: authData.need_login ? authData.tokens_used_in : undefined,
+          expected_login_tokens_map: authData.need_login
+            ? JSON.stringify(authData.expected_login_tokens_map)
             : undefined,
           need_login: authData.need_login,
         };
@@ -223,7 +224,6 @@ export default class GatewayController {
           data: returnPayload,
         });
       } catch (err) {
-        console.log(err);
         return ErrorReturn({
           msg: 'Create Gateway error',
           res: response,
@@ -269,7 +269,7 @@ export default class GatewayController {
           parameters: [{ message: 'Gateway not found', parameter: 'id' }],
         });
       }
-      const { auth, credentials, ...config } = data;
+      const { auth, ...config } = data;
 
       // analiza o conflito de url e ou port nas gateways
       if (config.port || config.url) {
@@ -331,10 +331,12 @@ export default class GatewayController {
       if (!!auth) {
         const { expected_login_tokens_map, ...authData } = auth;
         const existentAuth = await AuthGatewayConfig.query().where('gateway_id', existentGateway.id).first();
+
         existentAuth?.merge({
-          expected_login_tokens_map: JSON.parse(JSON.stringify(auth?.expected_login_tokens_map)) as JSON,
+          expected_login_tokens_map: JSON.stringify(expected_login_tokens_map),
           ...authData,
         });
+        await existentAuth?.save();
       }
 
       const returnPayload = {
@@ -394,7 +396,7 @@ export default class GatewayController {
       }));
       const authConfigPayload = {
         need_login: existentAuthConfig?.need_login,
-        expected_login_tokens_map: existentAuthConfig?.expected_login_tokens_map,
+        expected_login_tokens_map: JSON.parse(existentAuthConfig?.expected_login_tokens_map as string),
         tokens_used_in: existentAuthConfig?.tokens_used_in,
       };
       const returnPayload = {
@@ -534,7 +536,6 @@ export default class GatewayController {
         data: returnPayload,
       });
     } catch (err) {
-      console.log(err);
       if (err instanceof errors.E_VALIDATION_ERROR) {
         return ErrorReturn({
           res: response,
@@ -656,6 +657,72 @@ export default class GatewayController {
           msg: 'Validation Error',
           parameters: err.messages[0].field == 'id' ? ParameterError(err.messages) : undefined,
           fields: err.messages[0].field != 'id' ? FieldError(err.messages) : undefined,
+        });
+      }
+      return ErrorReturn({
+        res: response,
+        status: 500,
+        msg: 'Internal Server error',
+      });
+    }
+  }
+
+  public async credentialsUpdate({ response, authPayload, request, params }: HttpContext) {
+    try {
+      if (!authPayload) {
+        return ErrorReturn({ res: response, status: 401, msg: 'Not authenticated', actions: { remove_token: true } });
+      }
+
+      let data = await request.validateUsing(updateCredentials.updateCredentialsBody);
+      const parameters = await updateCredentials.updateCredentialsParameters.validate(params);
+
+      if (Object.keys(data).length === 0) {
+        return ErrorReturn({ status: 400, msg: 'Data not send', res: response });
+      }
+      const existentCredential = await AuthGatewayKeyValue.query()
+        .where('id', parameters.credential_id)
+        .andWhere('gateway_id', parameters.id)
+        .first();
+
+      if (!existentCredential) {
+        return ErrorReturn({
+          msg: 'Credential not found',
+          res: response,
+          status: 404,
+        });
+      }
+      try {
+        if (data.value) {
+          data.value = encrypt({ data: data.value, key: APP_KEY });
+        }
+        existentCredential.merge(data);
+        await existentCredential.save();
+        await existentCredential.refresh();
+
+        const returnPayload = {
+          id: existentCredential.id,
+          gateway_id: existentCredential.gateway_id,
+        };
+        return SuccessReturn({
+          msg: 'Success update credential',
+          res: response,
+          status: 200,
+          data: returnPayload,
+        });
+      } catch (err) {
+        return ErrorReturn({
+          msg: 'Update credential error',
+          res: response,
+          status: 500,
+        });
+      }
+    } catch (err) {
+      if (err instanceof errors.E_VALIDATION_ERROR) {
+        return ErrorReturn({
+          res: response,
+          status: 400,
+          msg: 'Validation Error',
+          fields: FieldError(err.messages),
         });
       }
       return ErrorReturn({

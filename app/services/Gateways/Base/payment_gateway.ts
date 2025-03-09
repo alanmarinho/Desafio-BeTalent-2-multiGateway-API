@@ -42,7 +42,6 @@ export class PaymentGateway {
       let header: AxiosHeaders = new AxiosHeaders();
       let body: Record<string, any> = {};
       let queryParams: URLSearchParams = new URLSearchParams();
-
       let gatewayTokens = await AuthGatewayKeyValue.query()
         .where('gateway_id', gateway_id)
         .preload('gateway')
@@ -62,7 +61,7 @@ export class PaymentGateway {
         need_decript = true;
       }
 
-      if (!avaliableTokens) {
+      if (avaliableTokens === false) {
         return;
       }
 
@@ -129,7 +128,6 @@ export class PaymentGateway {
       let header: AxiosHeaders = new AxiosHeaders();
       let body: Record<string, any> = {};
       let queryParams: URLSearchParams = new URLSearchParams();
-
       tokens.forEach((token) => {
         switch (token.use_in) {
           case UsekeyValueIn.BODY:
@@ -152,14 +150,13 @@ export class PaymentGateway {
       const port = tokens[0].gateway.port;
 
       const requestUrl = `${url}:${port}${this.gatewayConfig.methods.login?.endPoint}${queryParams.toString() ? `?${queryParams}` : ''}`;
-
       const response = await axios.post(requestUrl, body, { headers: header });
       let tokensReturn: GatewayLoginReturn[] = [];
 
-      for (const [originalKey, newKey] of Object.entries(tokens[0].config.expected_login_tokens_map)) {
+      for (const [originalKey, newKey] of Object.entries(JSON.parse(tokens[0].config.expected_login_tokens_map))) {
         let tokensObject: GatewayLoginReturn = { key: '', value: '', use_in: UsekeyValueIn.HEADER };
         if (response.data[originalKey] !== undefined) {
-          tokensObject['key'] = newKey;
+          tokensObject['key'] = newKey as string;
           tokensObject['value'] = response.data[originalKey];
           tokensObject['use_in'] = tokens[0].config.tokens_used_in as unknown as UsekeyValueIn;
           tokensReturn.push(tokensObject);
@@ -168,6 +165,17 @@ export class PaymentGateway {
 
       return tokensReturn;
     } catch (err) {
+      const expectedErrors = this.gatewayConfig.methods.login?.expectedError;
+
+      if (expectedErrors) {
+        const expectedValues = Object.values(expectedErrors);
+
+        const errString = JSON.stringify(err.response.data);
+
+        if (expectedValues.some((value) => errString.includes(value))) {
+          console.error('gateway login', errString);
+        }
+      }
       return false;
     }
   }
@@ -207,6 +215,17 @@ export class PaymentGateway {
       });
       return remappedData;
     } catch (err) {
+      const expectedErrors = this.gatewayConfig.methods.listTransactions?.expectedError;
+
+      if (expectedErrors) {
+        const expectedValues = Object.values(expectedErrors);
+
+        const errString = JSON.stringify(err.response.data);
+
+        if (expectedValues.some((value) => errString.includes(value))) {
+          console.error('gateway listTransactions', errString);
+        }
+      }
       return false;
     }
   }
@@ -241,6 +260,7 @@ export class PaymentGateway {
       if (!gatewayReturn) {
         return false;
       }
+
       const dataRoute = this.gatewayConfig.methods.transaction?.dataRoute;
 
       const data = dataRoute ? (gatewayReturn.data?.[dataRoute] ?? gatewayReturn.data) : gatewayReturn.data;
@@ -258,6 +278,17 @@ export class PaymentGateway {
 
       return false;
     } catch (err) {
+      const expectedErrors = this.gatewayConfig.methods.login?.expectedError;
+
+      if (expectedErrors) {
+        const expectedValues = Object.values(expectedErrors);
+
+        const errString = JSON.stringify(err.response.data);
+
+        if (expectedValues.some((value) => errString.includes(value))) {
+          console.error('gateway makeTransaction', errString);
+        }
+      }
       return false;
     }
   }
@@ -306,6 +337,17 @@ export class PaymentGateway {
 
       return true;
     } catch (err) {
+      const expectedErrors = this.gatewayConfig.methods.login?.expectedError;
+
+      if (expectedErrors) {
+        const expectedValues = Object.values(expectedErrors);
+
+        const errString = JSON.stringify(err.response.data);
+
+        if (expectedValues.some((value) => errString.includes(value))) {
+          console.error('gateway reimbursement', errString);
+        }
+      }
       return false;
     }
   }

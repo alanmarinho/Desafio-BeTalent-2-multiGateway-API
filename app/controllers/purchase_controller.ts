@@ -18,7 +18,7 @@ import { HttpContext } from '@adonisjs/core/http';
 import { errors } from '@vinejs/vine';
 
 export default class PurchaseController {
-  public async index({ response, request, authPayload }: HttpContext) {
+  public async index({ response,  authPayload }: HttpContext) {
     try {
       if (!authPayload) {
         return ErrorReturn({ res: response, status: 401, msg: 'Not authenticated', actions: { remove_token: true } });
@@ -34,7 +34,15 @@ export default class PurchaseController {
       const userRule = existentUser.role.name;
       const purchaseListQuery = Transaction.query();
       if (userRule !== RoleTypes.ADMIN) {
-        purchaseListQuery.where('client_id', authPayload.user_id);
+        const userClient = await Client.query().where('user_id', authPayload.user_id).first();
+        if (!userClient) {
+          return ErrorReturn({
+            msg: 'Cluent not found',
+            res: response,
+            status: 404,
+          });
+        }
+        purchaseListQuery.where('client_id', userClient.id);
       }
       const purchaseList = await purchaseListQuery;
 
@@ -52,7 +60,6 @@ export default class PurchaseController {
         data: returnPayload,
       });
     } catch (err) {
-      console.log(err);
       if (err instanceof errors.E_VALIDATION_ERROR) {
         return ErrorReturn({
           res: response,
@@ -85,22 +92,20 @@ export default class PurchaseController {
           status: 404,
         });
       }
-      const existentProducts = await Promise.all(
-        data.products.map(async (product, index) => {
-          const foundProduct = await Product.query().where('id', product.product_id).whereNull('deleted_in').first();
+      let existentProducts: Array<Product> = [];
 
-          if (!foundProduct) {
-            return ErrorReturn({
-              msg: 'Product not found',
-              res: response,
-              status: 404,
-              fields: [{ field: `products[${index}].id`, message: 'Product not found' }],
-            });
-          }
-
-          return foundProduct;
-        }),
-      );
+      for (const [index, product] of data.products.entries()) {
+        const foundProduct = await Product.query().where('id', product.product_id).whereNull('deleted_in').first();
+        if (!foundProduct) {
+          return ErrorReturn({
+            msg: 'Product not found',
+            res: response,
+            status: 400,
+            fields: [{ field: `products[${index}].id`, message: 'Product not found' }],
+          });
+        }
+        existentProducts.push(foundProduct);
+      }
 
       if (!!existentProducts && existentProducts.length < 1) {
         return ErrorReturn({
@@ -158,12 +163,16 @@ export default class PurchaseController {
       }
 
       try {
-        let existentClient = await Client.query().where('id', authPayload.user_id).first();
+        let existentClient = await Client.query()
+          .where('user_id', authPayload.user_id)
+          .andWhere('email', existentUser.email)
+          .first();
 
         if (!existentClient) {
           const newClientPayload = {
             name: existentUser.name,
             email: existentUser.email,
+            user_id: authPayload.user_id,
           };
           existentClient = await Client.create(newClientPayload);
         }
@@ -190,15 +199,19 @@ export default class PurchaseController {
 
           await TransactionProduct.create(productTransactionPayload);
         }
-
+        const returnPayload = {
+          purchase_id: newTransaction.id,
+          ammont: newTransaction.amount / 100,
+          status: newTransaction.status,
+        };
         return SuccessReturn({
-          msg: 'Success create ',
+          msg: 'Success create',
           res: response,
           status: 200,
+          data: returnPayload,
         });
       } catch (err) {
         const paymentGateway = GatewayFactory.create(usedGateway.name);
-
         if (paymentGateway) {
           const successEmaergencyReimbursement = await paymentGateway.reimbursement(
             usedGateway.id,

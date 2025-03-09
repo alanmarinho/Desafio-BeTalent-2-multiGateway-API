@@ -28,4 +28,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_USER: Env.schema.string(),
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
+
+  // ADM config
+  ADM_NAME: Env.schema.string(),
+  ADM_EMAIL: Env.schema.string(),
+  ADM_PASSWORD: Env.schema.string(),
 });

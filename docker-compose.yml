@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  mysql:
+  db:
     image: mysql:8.0
     container_name: betalent_multigateway_payment_db
     environment:
@@ -14,7 +14,22 @@ services:
       - '127.0.0.1:3390:3306'
     volumes:
       - ./db_data:/var/lib/mysql
+    networks:
+      - mynetwork
+    restart: always
+
+  gateways-mock:
+    image: matheusprotzen/gateways-mock
+    container_name: gateways_mock
+    ports:
+      - '3001:3001'
+      - '3002:3002'
+    networks:
+      - mynetwork
     restart: always
 
 volumes:
   db_data:
+
+networks:
+  mynetwork:

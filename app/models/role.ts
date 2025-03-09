@@ -16,5 +16,5 @@ export default class Role extends BaseModel {
   declare created_at: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare created_at: DateTime;
+  declare updated_at: DateTime;
 }

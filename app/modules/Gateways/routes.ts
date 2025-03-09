@@ -11,7 +11,10 @@ router
     router.get('/:id', [GatewayController, 'details']);
     router.put('/:id', [GatewayController, 'update']);
     router.delete('/:id', [GatewayController, 'delete']);
+
     router.post('/:id/credentials', [GatewayController, 'showCredentials']);
+    router.patch('/:id/credentials/:credential_id', [GatewayController, 'credentialsUpdate']);
+
     router.patch('/:id/priority', [GatewayController, 'priorityChange']);
     router.patch('/:id/status', [GatewayController, 'activeStatusChange']);
   })

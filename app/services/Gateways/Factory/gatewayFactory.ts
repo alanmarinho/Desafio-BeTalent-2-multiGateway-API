@@ -1,4 +1,3 @@
-import { BaseCheck } from '@adonisjs/core/health';
 import { PaymentGateway } from '../Base/payment_gateway.js';
 
 interface GatewayMethodConfig {

@@ -15,7 +15,7 @@ export default class extends BaseSchema {
       table.integer('user_id').notNullable().unsigned().references('id').inTable('users').onDelete('CASCADE');
       table.integer('gateway_id').notNullable().unsigned().references('id').inTable('gateways').onDelete('CASCADE');
       table.enum('tokens_used_in', UseExpectedTokensInValues).notNullable();
-      table.json('expected_login_tokens_map').nullable().defaultTo(null);
+      table.text('expected_login_tokens_map').nullable().defaultTo(null);
       table.boolean('need_login').notNullable().defaultTo(false);
 
       table.dateTime('created_at', { useTz: true }).defaultTo(this.now());

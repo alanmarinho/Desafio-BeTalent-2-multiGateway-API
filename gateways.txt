@@ -1,3 +1,5 @@
+----------------- gateway1 -------------------
+
 {
 	"name":"gateway1",
 	"is_active":true,
@@ -13,7 +15,7 @@
 	"credentials":[
 		{
 			"key":"email",
-			"value":"dev@betalent.tec",
+			"value":"dev@betalent.tech",
 			"use_in":"BODY",
 			"type":"LOGIN"
 		},
@@ -26,6 +28,8 @@
 	]
 }
 
+----------------- gateway2 -------------------
+
 {
 	"name":"gateway2",
 	"is_active":true,
@@ -33,9 +37,7 @@
 	"priority":1,
 	"port":"3002",
 	"auth":{
-		"need_login":false,
-		"tokens_used_in":"BEARER",
-		"expected_login_tokens_map":{"token": "token"}
+		"need_login":false
 	},
 	
 	"credentials":[

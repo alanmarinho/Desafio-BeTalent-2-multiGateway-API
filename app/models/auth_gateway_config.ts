@@ -25,7 +25,7 @@ export default class AuthGatewayConfig extends BaseModel {
   declare tokens_used_in: UseExpectedTokensIn;
 
   @column()
-  declare expected_login_tokens_map: JSON;
+  declare expected_login_tokens_map: string;
 
   @column()
   declare need_login: boolean;

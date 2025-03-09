@@ -11,6 +11,9 @@ export default class Client extends BaseModel {
   @column()
   declare email: string;
 
+  @column()
+  declare user_id: number;
+
   @column.dateTime({ autoCreate: true })
   declare created_at: DateTime;
 

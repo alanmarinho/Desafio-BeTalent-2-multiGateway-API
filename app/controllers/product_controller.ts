@@ -173,7 +173,7 @@ export default class ProductController {
       }
       const parameters = await detailsValidatorParameters.validate(params);
 
-      const existentProduct = await Product.query().where('id', parameters.id).whereNull('deleted_in').first();
+      const existentProduct = await Product.query().where('id', parameters.id).first();
 
       if (!existentProduct) {
         return ErrorReturn({
@@ -188,6 +188,7 @@ export default class ProductController {
         name: existentProduct.name,
         unit_price: existentProduct.unit_price,
         created_at: existentProduct.created_at,
+        deleted_in: !!existentProduct.deleted_in ? existentProduct.deleted_in : undefined,
       };
 
       return SuccessReturn({
