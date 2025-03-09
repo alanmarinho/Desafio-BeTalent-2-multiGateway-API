@@ -12,7 +12,7 @@ O Teste consiste em estruturar uma API RESTful conectada a um banco de dados e a
 
 - Email: alanmarinho020@gmail.com
 
-- Repositório: 
+- Repositório: https://github.com/alanmarinho/Desafio-BeTalent-2-multiGateway-API
 
   
 
